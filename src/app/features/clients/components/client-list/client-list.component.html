@@ -8,10 +8,10 @@
         <p class="sub">Manage all registered clients from one place.</p>
       </div>
 
-      <button mat-flat-button color="primary" routerLink="/clients/new" class="add-btn">
+      <!-- <button mat-flat-button color="primary" class="add-btn">
         <mat-icon>add</mat-icon>
         <span>Add Client</span>
-      </button>
+      </button> -->
     </div>
 
     <!-- Search -->
@@ -98,7 +98,6 @@
             <button
               mat-icon-button
               color="primary"
-              [routerLink]="['/clients', c.id, 'edit']"
               matTooltip="Edit"
             >
               <mat-icon>edit</mat-icon>

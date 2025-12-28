@@ -21,7 +21,7 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-   private baseUrl = 'https://iconfilers.club/IconFilers';
+   private baseUrl = 'https://localhost:7255';
 
   constructor(private http: HttpClient) {}
 

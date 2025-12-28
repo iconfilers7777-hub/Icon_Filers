@@ -1,4 +1,5 @@
 export interface Client {
+  address: string;
   id?: number | string;
   name?: string;
   email?: string | null;

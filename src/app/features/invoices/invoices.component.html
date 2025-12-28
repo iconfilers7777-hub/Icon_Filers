@@ -1,26 +1,34 @@
 <div class="invoice-container">
+
   <!-- Header -->
   <div class="invoice-header">
     <div>
-      <h3 class="invoice-title">🧾 Invoice</h3>
-      <p class="invoice-subtitle">Add line items, apply discounts and calculate the final amount.</p>
+      <h3 class="invoice-title">Invoice</h3>
+      <p class="invoice-subtitle">
+        Add items, apply discounts and generate the final invoice amount.
+      </p>
     </div>
+    <div class="invoice-badge">Draft</div>
   </div>
 
-  <!-- Items section -->
-  <div class="items-card">
-    <!-- Items table header -->
+  <!-- Items Card -->
+  <div class="card items-card">
+    <div class="card-title">Line Items</div>
+
+    <!-- Table Header -->
     <div class="items-header">
       <span>Item</span>
       <span class="right-align">Amount (₹)</span>
-      <span class="remove-col"></span>
+      <span></span>
     </div>
 
-    <!-- Dynamic Rows -->
+    <!-- Rows -->
     <div *ngFor="let row of items; let i = index" class="item-row">
       <select [(ngModel)]="row.item" [name]="'item' + i" class="dropdown">
-        <option value="" disabled>Select Item</option>
-        <option *ngFor="let item of availableItems" [value]="item">{{ item }}</option>
+        <option value="" disabled>Select item</option>
+        <option *ngFor="let item of availableItems" [value]="item">
+          {{ item }}
+        </option>
       </select>
 
       <input
@@ -35,58 +43,61 @@
         *ngIf="items.length > 1"
         class="remove-btn"
         type="button"
-        (click)="removeItem(i)"
-        title="Remove row"
-      >
+        (click)="removeItem(i)">
         ✕
       </button>
     </div>
 
-    <!-- Add New Row -->
-    <div class="add-btn-container">
-      <button class="add-btn" type="button" (click)="addItem()">
-        + Add line
-      </button>
-    </div>
-  </div>
-
-  <!-- Summary Box -->
-  <div class="summary-box">
-    <div class="summary-row">
-      <span>Items Total</span>
-      <strong>₹{{ itemsTotal }}</strong>
-    </div>
-
-    <div class="summary-row">
-      <span>Discount Amount</span>
-      <input
-        type="number"
-        [(ngModel)]="discount"
-        class="summary-input"
-        placeholder="0"
-      />
-    </div>
-
-    <div class="summary-row">
-      <span>Referral Bonus</span>
-      <input
-        type="number"
-        [(ngModel)]="referralBonus"
-        class="summary-input"
-        placeholder="0"
-      />
-    </div>
-
-    <div class="summary-row final">
-      <span>Final Amount</span>
-      <strong>₹{{ finalAmount }}</strong>
-    </div>
-  </div>
-
-  <!-- Save Button -->
-  <div class="actions">
-    <button class="save-btn" (click)="saveInvoice()">
-      💾 Save Invoice
+    <button class="add-btn" type="button" (click)="addItem()">
+      + Add another item
     </button>
   </div>
+
+  <!-- Summary + Actions -->
+  <div class="footer-grid">
+
+    <!-- Summary -->
+    <div class="card summary-box">
+      <div class="card-title">Summary</div>
+
+      <div class="summary-row">
+        <span>Items Total</span>
+        <strong>₹{{ itemsTotal }}</strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Discount</span>
+        <input
+          type="number"
+          [(ngModel)]="discount"
+          class="summary-input"
+          placeholder="0"
+        />
+      </div>
+
+      <div class="summary-row">
+        <span>Referral Bonus</span>
+        <input
+          type="number"
+          [(ngModel)]="referralBonus"
+          class="summary-input"
+          placeholder="0"
+        />
+      </div>
+
+      <div class="summary-row final">
+        <span>Final Amount</span>
+        <strong>₹{{ finalAmount }}</strong>
+      </div>
+    </div>
+
+    <!-- Save -->
+    <div class="actions">
+      <button class="save-btn" (click)="saveInvoice()">
+        Save Invoice
+      </button>
+    </div>
+
+  </div>
+
 </div>

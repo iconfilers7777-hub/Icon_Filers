@@ -369,18 +369,26 @@ assignSelectedTeam(): void {
 
   const url = `${environment.apiBaseUrl}/ClientAssignment/add-bulk`;
 
-  // 🔹 build BULK payload (ARRAY)
-  const payload = this.selection.selected.map(row => ({
+  // 🔹 build BULK DATA ARRAY
+  const data = this.selection.selected.map(row => ({
     name: row.name,
     contact: row.phone1,
     contact2: row.phone2 ?? '',
     email: row.email,
     status: row.status ?? 'Assigned',
     assignedTo: this.selectedBulkUserId,
-    assignedBy: this.defaultAssignedBy ?? this.authService.getUser()?.id ?? null
+    assignedBy: this.defaultAssignedBy
+      ?? this.authService.getUser()?.id
+      ?? null
   }));
 
-  console.log('➡️ BULK PAYLOAD:', JSON.stringify(payload, null, 2));
+  // 🔹 Swagger-required WRAPPER
+  const payload = {
+    assignedTo: this.selectedBulkUserId,
+    data
+  };
+
+  console.log('➡️ FINAL BULK PAYLOAD:', JSON.stringify(payload, null, 2));
 
   this.loading = true;
 
@@ -388,7 +396,7 @@ assignSelectedTeam(): void {
     headers: this.authService.getAuthHeaders()
   }).subscribe({
     next: () => {
-      this.showBanner(`✅ ${payload.length} leads assigned successfully`);
+      this.showBanner(`✅ ${data.length} leads assigned successfully`);
       this.selection.clear();
       this.loadLeads();
       this.loading = false;

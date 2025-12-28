@@ -154,5 +154,127 @@
         <p>Start typing above to search, or add a new client from the left menu.</p>
       </div>
     </ng-template>
+
+    
+
+
+    <ng-template #clientDetailsDialog>
+
+  <div class="client-dialog">
+
+    <!-- Header -->
+    <div class="dialog-header">
+      <div class="header-left">
+        <div class="avatar">
+          {{ selectedClientDetails?.client?.name?.charAt(0) || '?' }}
+        </div>
+        <div>
+          <h2>Client Details</h2>
+          <span class="client-id">
+            ID: {{ selectedClientDetails?.client?.id }}
+          </span>
+        </div>
+      </div>
+
+      <button mat-icon-button (click)="closeDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Basic Info -->
+    <section class="section">
+      <h3>Basic Information</h3>
+
+      <div class="info-grid">
+        <div>
+          <label>Name</label>
+          <p>{{ selectedClientDetails?.client?.name }}</p>
+        </div>
+
+        <div>
+          <label>Email</label>
+          <p>{{ selectedClientDetails?.client?.email }}</p>
+        </div>
+
+        <div>
+          <label>Phone</label>
+          <p>{{ selectedClientDetails?.client?.contact || '—' }}</p>
+        </div>
+
+        <div>
+          <label>Status</label>
+          <span
+            class="status-pill"
+            [class.active]="selectedClientDetails?.client?.status === 'Active'"
+          >
+            {{ selectedClientDetails?.client?.status }}
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Assignments -->
+    <section
+      class="section"
+      *ngIf="selectedClientDetails?.assignments?.length"
+    >
+      <h3>Assignments</h3>
+
+      <table class="assign-table">
+        <thead>
+          <tr>
+            <th>Assigned To</th>
+            <th>Assigned At</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of selectedClientDetails.assignments">
+            <td>{{ a.assignedTo }}</td>
+            <td>{{ a.assignedAt | date:'dd-MMM-yyyy HH:mm' }}</td>
+            <td><span class="badge">{{ a.status }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats-row">
+      <div class="stat-card">
+        <mat-icon>description</mat-icon>
+        <div>
+          <strong>{{ selectedClientDetails?.documents?.length || 0 }}</strong>
+          <span>Documents</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <mat-icon>receipt_long</mat-icon>
+        <div>
+          <strong>{{ selectedClientDetails?.invoices?.length || 0 }}</strong>
+          <span>Invoices</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <mat-icon>payments</mat-icon>
+        <div>
+          <strong>{{ selectedClientDetails?.payments?.length || 0 }}</strong>
+          <span>Payments</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="dialog-footer">
+      <button mat-stroked-button (click)="closeDialog()">Close</button>
+    </div>
+
+  </div>
+
+</ng-template>
+
   </mat-card>
 </div>

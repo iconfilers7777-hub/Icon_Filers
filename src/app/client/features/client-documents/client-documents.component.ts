@@ -23,7 +23,7 @@ export class ClientDocumentsComponent implements OnInit {
   clientId!: string;        // GUID
   clientName = '';
 
-  private api = environment.apiBaseUrl; // https://iconfilers.club/IconFilers/api
+  private api = environment.apiBaseUrl; // https://localhost:7255/api
 
   /* ===============================
      DOCUMENT STATE

@@ -294,19 +294,44 @@ loadDocuments(): void {
 
 
 
-  /* ---------- Download ---------- */
+/* ---------- Download ---------- */
 download(doc: ClientDocument): void {
-  const fileUrl = `https://iconfilers.club${doc.filePath}`;
-  console.log('[DocumentsComponent] downloading', fileUrl);
+  if (!this.clientId || !doc?.fileName) return;
 
-  const a = document.createElement('a');
-  a.href = fileUrl;
-  a.download = doc.fileName; // forces download
-  a.target = '_blank';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const url =
+    `${this.api}/clients/${this.clientId}/documents/DownloadClientDocument` +
+    `?fileName=${encodeURIComponent(doc.fileName)}`;
+
+  console.log('[DocumentsComponent] Download URL:', url);
+
+  this.http.get(url, {
+    ...this.authOptions(),
+    responseType: 'blob'
+  }).subscribe({
+    next: (blob: Blob) => {
+      // Create object URL
+      const objectUrl = window.URL.createObjectURL(blob);
+
+      // Create anchor
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = doc.fileName;
+      a.style.display = 'none';
+
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(objectUrl);
+    },
+    error: (err) => {
+      console.error('[DocumentsComponent] Download ERROR', err);
+      alert('Failed to download document');
+    }
+  });
 }
+
 
 
 

@@ -1,8 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { ClientService } from '../../services/client.service'; // adjust path if different
+import { ClientService } from '../../services/client.service';
 import { Client } from 'src/app/core/models/client.model';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-searchclient',
@@ -10,32 +11,38 @@ import { Client } from 'src/app/core/models/client.model';
   styleUrls: ['./searchclient.component.scss']
 })
 export class SearchclientComponent implements OnInit, OnDestroy {
+
+  @ViewChild('clientDetailsDialog') clientDetailsDialog!: TemplateRef<any>;
+
   searchForm = this.fb.group({
     searchText: ['', Validators.required],
     status: ['all']
   });
 
-  isLoading = false;        // useful when you later connect real API
+  isLoading = false;
   errorMessage = '';
 
-  /** all clients from service */
-  private allClients: Client[] = [];
-  /** filtered for display */
+  allClients: Client[] = [];
   clients: Client[] = [];
 
-  displayedColumns: string[] = ['name', 'email', 'phone', 'status', 'team', 'createdAt', 'actions'];
+  selectedClientDetails: any = null;
+  dialogRef?: MatDialogRef<any>;
+
+  displayedColumns = [
+    'name', 'email', 'phone', 'status', 'team', 'createdAt', 'actions'
+  ];
 
   private sub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
-    private clientService: ClientService
+    private clientService: ClientService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
-    // get initial list (from BehaviorSubject)
-    this.sub = this.clientService.getClients().subscribe(clients => {
-      this.allClients = clients || [];
+    this.sub = this.clientService.getClients().subscribe(res => {
+      this.allClients = res || [];
       this.applyFilter();
     });
   }
@@ -45,39 +52,59 @@ export class SearchclientComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
-    if (this.searchForm.invalid) return;
     this.applyFilter();
   }
 
   clear(): void {
     this.searchForm.reset({ searchText: '', status: 'all' });
-    this.errorMessage = '';
     this.applyFilter();
   }
 
-  private applyFilter(): void {
-    const text = (this.searchForm.value.searchText || '').toLowerCase().trim();
-    const status = this.searchForm.value.status || 'all';
+private applyFilter(): void {
+  const text = (this.searchForm.value.searchText || '').toLowerCase().trim();
+  const status = this.searchForm.value.status || 'all';
 
-    this.clients = this.allClients.filter(c => {
-      const matchesText =
-        !text ||
-        c.name?.toLowerCase().includes(text) ||
-        c.email?.toLowerCase().includes(text) ||
-        c.phone?.toLowerCase().includes(text) ||
-        c.id?.toString().toLowerCase().includes(text);
+  this.clients = this.allClients.filter(c => {
+    const matchesText =
+      !text ||
+      (c.name && c.name.toLowerCase().includes(text)) ||
+      (c.email && c.email.toLowerCase().includes(text)) ||
+      (c.phone && String(c.phone).toLowerCase().includes(text)) ||
+      (c.id && String(c.id).toLowerCase().includes(text));
 
-      const matchesStatus =
-        status === 'all' || !c.status
-          ? true
-          : c.status.toLowerCase() === status.toLowerCase();
+    const matchesStatus =
+      status === 'all' ||
+      !c.status ||
+      c.status.toLowerCase() === status.toLowerCase();
 
-      return matchesText && matchesStatus;
+    return matchesText && matchesStatus;
+  });
+}
+
+
+  /* 🔥 VIEW CLIENT DETAILS */
+  viewClient(c: Client): void {
+    this.isLoading = true;
+
+    this.clientService.getClientDetails(c.id as string).subscribe({
+      next: (res) => {
+        this.selectedClientDetails = res;
+        this.isLoading = false;
+
+        this.dialogRef = this.dialog.open(this.clientDetailsDialog, {
+          width: '900px',
+          maxHeight: '85vh',
+          disableClose: false
+        });
+      },
+      error: () => {
+        this.isLoading = false;
+        this.errorMessage = 'Failed to load client details';
+      }
     });
   }
 
-  viewClient(c: Client): void {
-    // later: navigate to /clients/:id or open details dialog
-    console.log('view client', c);
+  closeDialog(): void {
+    this.dialogRef?.close();
   }
 }

@@ -1,45 +1,62 @@
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, TemplateRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  TemplateRef
+} from '@angular/core';
+import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+
 import { ClientService } from './services/client.service';
 import { Client } from 'src/app/core/models/client.model';
-import { Router } from '@angular/router';
+import { ClientSelectionService } from './services/client-selection.service';
+
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Subject, takeUntil } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { ClientSelectionService } from './services/client-selection.service';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-clients',
   templateUrl: './clients.component.html',
   styleUrls: ['./clients.component.scss']
 })
-export class ClientsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ClientsComponent implements OnInit, OnDestroy {
+
+  /* ---------------- ViewChild ---------------- */
   @ViewChild('documentDialog') documentDialog!: TemplateRef<any>;
+  @ViewChild('editClientDialog') editClientDialog!: TemplateRef<any>;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+  /* ---------------- Dialog refs ---------------- */
   private documentDialogRef?: MatDialogRef<any>;
-  selectedClient: Client | null = null;
+  private editDialogRef?: MatDialogRef<any>;
 
-  // data + UI
+  /* ---------------- Form ---------------- */
+  editForm!: FormGroup;
+  editingClientId?: string | number;
+
+  /* ---------------- Data ---------------- */
+  selectedClient: Client | null = null;
   private allClients: Client[] = [];
   private filteredClients: Client[] = [];
 
   dataSource = new MatTableDataSource<Client>([]);
-  searchTerm = '';
-  // show relevant columns (team/role will show '-' if missing)
   cols: string[] = ['name', 'email', 'phone', 'status', 'team', 'documents', 'actions'];
+users: any[] = [];
 
+  searchTerm = '';
   loading = false;
   hasError = false;
 
-  // pagination
+  /* ---------------- Pagination ---------------- */
   pageIndex = 0;
   pageSize = 25;
   pageSizeOptions = [10, 25, 50];
   totalItems = 0;
-
-  useServerSide = false;
 
   private destroy$ = new Subject<void>();
 
@@ -48,15 +65,22 @@ export class ClientsComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private clientSelectionService: ClientSelectionService
+    private clientSelectionService: ClientSelectionService,
+    private fb: FormBuilder
   ) {}
 
+  /* ---------------- Lifecycle ---------------- */
   ngOnInit(): void {
-    this.loadClients();
-  }
+    this.editForm = this.fb.group({
+      name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      phone: [''],
+      address: [''],
+      status: [''],
+      assignedUserId: ['']
+    });
 
-  ngAfterViewInit(): void {
-    // manual paging/slicing approach in updatePagedData
+    this.loadClients();
   }
 
   ngOnDestroy(): void {
@@ -64,25 +88,18 @@ export class ClientsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /* ---------- Loading ---------- */
+  /* ---------------- Load Clients ---------------- */
   loadClients(): void {
     this.loading = true;
     this.hasError = false;
-
-    if (this.useServerSide) {
-      this.loadPageFromServer(this.pageIndex, this.pageSize);
-      return;
-    }
 
     this.clientService.getClients()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (list: Client[]) => {
-          // list is already normalized by the service
-          this.allClients = (list || []).map(item => ({
-            ...item,
-            // ensure phone field present from contact fallback
-            phone: item.phone ?? item.contact ?? null
+          this.allClients = (list || []).map(c => ({
+            ...c,
+            phone: c.phone ?? c.contact ?? null
           }));
           this.filteredClients = [...this.allClients];
           this.totalItems = this.filteredClients.length;
@@ -90,30 +107,10 @@ export class ClientsComponent implements OnInit, AfterViewInit, OnDestroy {
           this.updatePagedData();
           this.loading = false;
         },
-        error: (err) => {
-          console.error('Failed to load clients', err);
+        error: () => {
           this.loading = false;
           this.hasError = true;
-          this.snackBar.open('❌ Failed to load clients', 'OK', { duration: 3000, panelClass: ['banner-error'] });
-        }
-      });
-  }
-
-  private loadPageFromServer(pageIndex: number, pageSize: number): void {
-    this.loading = true;
-    this.clientService.getClientsPaged(pageIndex + 1, pageSize)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (resp: { items: Client[]; total: number }) => {
-          this.dataSource.data = resp.items || [];
-          this.totalItems = resp.total ?? (resp.items || []).length;
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Failed to load page from server', err);
-          this.loading = false;
-          this.hasError = true;
-          this.snackBar.open('❌ Failed to load clients', 'OK', { duration: 3000, panelClass: ['banner-error'] });
+          this.snackBar.open('❌ Failed to load clients', 'OK', { duration: 3000 });
         }
       });
   }
@@ -128,101 +125,141 @@ export class ClientsComponent implements OnInit, AfterViewInit, OnDestroy {
   onPageChanged(e: PageEvent): void {
     this.pageIndex = e.pageIndex;
     this.pageSize = e.pageSize;
-
-    if (this.useServerSide) {
-      this.loadPageFromServer(this.pageIndex, this.pageSize);
-    } else {
-      this.updatePagedData();
-    }
-  }
-
-  private matchesFilter(item: Client, term: string): boolean {
-    const t = term.trim().toLowerCase();
-    if (!t) return true;
-    const name = (item.name ?? '').toLowerCase();
-    const email = (item.email ?? '').toLowerCase();
-    const phone = (item.phone ?? item.contact ?? '').toLowerCase();
-    const status = (item.status ?? '').toLowerCase();
-    const team = (item.team ?? '').toLowerCase();
-
-    return `${name} ${email} ${phone} ${status} ${team}`.includes(t);
-  }
-
-  applyFilter(): void {
-    if (this.useServerSide) {
-      this.pageIndex = 0;
-      this.loadPageFromServer(this.pageIndex, this.pageSize);
-      return;
-    }
-
-    const term = (this.searchTerm || '').trim().toLowerCase();
-    this.filteredClients = this.allClients.filter(c => this.matchesFilter(c, term));
-    this.totalItems = this.filteredClients.length;
-    this.pageIndex = 0;
-    if (this.paginator) this.paginator.firstPage();
     this.updatePagedData();
   }
 
+  applyFilter(): void {
+    const term = (this.searchTerm || '').toLowerCase();
+    this.filteredClients = this.allClients.filter(c =>
+      `${c.name} ${c.email} ${c.phone} ${c.status} ${c.team}`
+        .toLowerCase()
+        .includes(term)
+    );
+    this.pageIndex = 0;
+    this.updatePagedData();
+  }
+
+  /* ---------------- Row selection ---------------- */
   selectClient(row: Client): void {
     if (!row?.id) return;
     this.selectedClient = row;
     this.clientSelectionService.setClientId(String(row.id));
   }
 
+
+
+
+loadUsers(): void {
+  this.clientService.getUsers()
+    .subscribe({
+      next: (res) => {
+        console.log('Users API response:', res); // 👈 DEBUG
+        this.users = res || [];
+      },
+      error: (err) => {
+        console.error('Users API error:', err);
+        this.snackBar.open('❌ Failed to load users', 'OK', { duration: 3000 });
+      }
+    });
+}
+
+
+  /* ---------------- Edit Dialog ---------------- */
+ openEditDialog(client: Client): void {
+  this.editingClientId = client.id;
+
+  this.editForm.patchValue({
+    name: client.name,
+    email: client.email,
+    phone: client.phone ?? client.contact ?? '',
+    address: client.address ?? '',
+    status: client.status ?? ''
+  });
+
+  this.loadUsers(); // 👈 THIS IS THE KEY LINE
+
+  this.editDialogRef = this.dialog.open(this.editClientDialog, {
+    width: '580px',
+    disableClose: true
+  });
+}
+
+
+
+  closeEditDialog(): void {
+    this.editDialogRef?.close();
+    this.editDialogRef = undefined;
+  }
+
+updateClient(): void {
+  if (!this.editingClientId || this.editForm.invalid) return;
+
+  this.loading = true;
+
+  const formValue = this.editForm.value;
+
+  const payload = {
+    name: formValue.name,
+    email: formValue.email,
+    phone: formValue.phone,
+    address: formValue.address,
+    status: formValue.status,
+    assignedTo: this.editForm.value.assignedUserId// 👈 backend field
+  };
+
+  this.clientService.updateClient(this.editingClientId, payload)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: () => {
+        this.snackBar.open('✅ Client updated', 'OK', { duration: 3000 });
+        this.loading = false;
+        this.closeEditDialog();
+        this.loadClients();
+      },
+      error: () => {
+        this.loading = false;
+        this.snackBar.open('❌ Update failed', 'OK', { duration: 3000 });
+      }
+    });
+}
+
+
+  /* ---------------- Documents ---------------- */
   openDocumentDialog(client: Client): void {
     this.selectedClient = client;
     this.documentDialogRef = this.dialog.open(this.documentDialog, {
       width: '420px',
-      data: { clientName: client.name || client.email || 'Client' },
       disableClose: true,
-      panelClass: 'custom-document-dialog'
+      data: { clientName: client.name || client.email }
     });
   }
 
   closeDialog(): void {
-    if (this.documentDialogRef) {
-      this.documentDialogRef.close();
-      this.documentDialogRef = undefined;
-    }
+    this.documentDialogRef?.close();
+    this.documentDialogRef = undefined;
   }
 
   goToDocuments(): void {
-    if (!this.selectedClient?.id) {
-      this.closeDialog();
-      return;
-    }
-
-    const id = String(this.selectedClient.id);
-    this.clientSelectionService.setClientId(id);
-
-    if (this.documentDialogRef) this.documentDialogRef.close();
-    this.router.navigate(['/admin', 'documents'], { queryParams: { clientId: id } }).catch(console.error);
+    if (!this.selectedClient?.id) return;
+    this.closeDialog();
+    this.router.navigate(['/admin/documents'], {
+      queryParams: { clientId: this.selectedClient.id }
+    });
   }
 
+  /* ---------------- Delete ---------------- */
   delete(id?: string | number): void {
-    if (!id) return;
-    if (!confirm('Are you sure you want to delete this client? This action cannot be undone.')) return;
-    this.loading = true;
+    if (!id || !confirm('Delete this client?')) return;
+
     this.clientService.deleteClient(id)
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.snackBar.open('✅ Client deleted', 'OK', { duration: 3000, panelClass: ['banner-success'] });
-          this.loadClients();
-        },
-        error: (err) => {
-          console.error('Delete failed', err);
-          this.loading = false;
-          this.snackBar.open('❌ Failed to delete client', 'OK', { duration: 3000, panelClass: ['banner-error'] });
-        }
+      .subscribe(() => {
+        this.snackBar.open('✅ Client deleted', 'OK', { duration: 3000 });
+        this.loadClients();
       });
   }
 
   goToNewClient(): void {
     this.router.navigate(['/clients/new']);
-  }
-
-  trackById(_: number, item: Client) {
-    return item.id;
   }
 }

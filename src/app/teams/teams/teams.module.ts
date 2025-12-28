@@ -12,11 +12,15 @@ import { TeamDocumentsUploadComponent } from '../features/team-documents-upload/
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 
 
 @NgModule({
   declarations: [
-    TeamDocumentsUploadComponent
+    TeamDocumentsUploadComponent,
   ],
   imports: [
     CommonModule,
@@ -31,6 +35,23 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     MatTableModule,
     MatCardModule,
     MatSnackBarModule,
+    MatTooltipModule,
+    MatPaginatorModule,
+    MatInputModule,
+    MatButtonModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatIconModule,
+    MatCardModule,
+    MatSnackBarModule,
+    MatTooltipModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule
+
+
+
   ]
 })
 export class TeamsModule { }

@@ -13,79 +13,48 @@
   </div>
 
   <mat-card class="client-form-card">
-    <form [formGroup]="clientForm" (ngSubmit)="onSubmit()">
-      <!-- Form grid -->
-      <div class="form-grid">
-        <!-- Name -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Full Name</mat-label>
-          <input matInput formControlName="name" placeholder="Enter full name" />
-          <mat-error *ngIf="clientForm.get('name')?.hasError('required')">
-            Name is required
-          </mat-error>
-        </mat-form-field>
+   <form [formGroup]="clientForm" (ngSubmit)="onSubmit()">
 
-        <!-- Email -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput formControlName="email" placeholder="Enter email" />
-          <mat-error *ngIf="clientForm.get('email')?.hasError('required')">
-            Email is required
-          </mat-error>
-          <mat-error *ngIf="clientForm.get('email')?.hasError('email')">
-            Enter a valid email
-          </mat-error>
-        </mat-form-field>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Full Name</mat-label>
+    <input matInput formControlName="fullName" />
+  </mat-form-field>
 
-        <!-- Phone -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Phone</mat-label>
-          <input
-            matInput
-            formControlName="phone"
-            placeholder="Enter phone number"
-          />
-        </mat-form-field>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Email</mat-label>
+    <input matInput formControlName="email" />
+  </mat-form-field>
 
-        <!-- Team -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Team</mat-label>
-          <mat-select formControlName="team">
-            <mat-option value="Tax Filing">Tax Filing</mat-option>
-            <mat-option value="Audit">Audit</mat-option>
-            <mat-option value="Advisory">Advisory</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Phone</mat-label>
+    <input matInput formControlName="phone" />
+  </mat-form-field>
 
-      <!-- Status -->
-      <div class="status-section">
-        <label class="status-label">Status</label>
-        <mat-radio-group formControlName="status" class="status-group">
-          <mat-radio-button value="active" class="status-chip">
-            Active
-          </mat-radio-button>
-          <mat-radio-button value="inactive" class="status-chip">
-            Inactive
-          </mat-radio-button>
-        </mat-radio-group>
-      </div>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Alternate Phone</mat-label>
+    <input matInput formControlName="alternatePhone" />
+  </mat-form-field>
 
-      <!-- Buttons -->
-      <div class="form-actions">
-        <button
-          mat-flat-button
-          color="primary"
-          type="submit"
-          [disabled]="clientForm.invalid"
-        >
-          <mat-icon>save</mat-icon>
-          <span>Save Client</span>
-        </button>
-        <!-- <button mat-stroked-button color="warn" type="button" routerLink="/clients">
-          Cancel
-        </button> -->
-      </div>
-    </form>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Password</mat-label>
+    <input matInput type="password" formControlName="password" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Role</mat-label>
+    <mat-select formControlName="role">
+      <mat-option value="Client">Client</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div class="form-actions">
+    <button mat-flat-button color="primary" type="submit" [disabled]="loading">
+      <mat-icon>save</mat-icon>
+      Save Client
+    </button>
+  </div>
+
+</form>
+
   </mat-card>
 </div>

@@ -12,10 +12,10 @@
         </div>
       </div>
 
-      <button mat-flat-button color="primary" (click)="goToNewClient()" class="add-btn">
+      <!-- <button mat-flat-button color="primary"  class="add-btn">
         <mat-icon>add</mat-icon>
         <span>Add Client</span>
-      </button>
+      </button> -->
     </div>
 
     <!-- Search row -->
@@ -28,7 +28,7 @@
     </div>
 
     <!-- Table shell -->
- <div *ngIf="!loading && !hasError && dataSource.data.length > 0" class="table-wrapper">
+    <div *ngIf="!loading && !hasError && dataSource.data.length > 0" class="table-wrapper">
       <table mat-table [dataSource]="dataSource" class="clients-table" matSort>
 
         <!-- Name -->
@@ -69,7 +69,7 @@
         <!-- Team -->
         <ng-container matColumnDef="team">
           <th mat-header-cell *matHeaderCellDef> Team </th>
-          <td mat-cell *matCellDef="let c">{{ c.team || '-' }}</td>
+          <td mat-cell *matCellDef="let c">{{ c.assignedUserName || '-' }}</td>
         </ng-container>
 
         <!-- Role -->
@@ -83,7 +83,7 @@
           <th mat-header-cell *matHeaderCellDef> Docs </th>
           <td mat-cell *matCellDef="let c">
             <button mat-icon-button matTooltip="Upload Documents"
-                    (click)="openDocumentDialog(c); $event.stopPropagation()">
+              (click)="openDocumentDialog(c); $event.stopPropagation()">
               <mat-icon>description</mat-icon>
             </button>
           </td>
@@ -93,13 +93,14 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef class="actions-header"> Actions </th>
           <td mat-cell *matCellDef="let c" class="actions-cell">
-            <button mat-icon-button color="primary" [routerLink]="['/clients', c.id, 'edit']"
-                    matTooltip="Edit" (click)="$event.stopPropagation()">
+            <button mat-icon-button color="primary" matTooltip="Edit"
+              (click)="openEditDialog(c); $event.stopPropagation()">
               <mat-icon>edit</mat-icon>
             </button>
 
-            <button mat-icon-button color="warn" (click)="delete(c.id); $event.stopPropagation()"
-                    matTooltip="Delete">
+
+
+            <button mat-icon-button color="warn" (click)="delete(c.id); $event.stopPropagation()" matTooltip="Delete">
               <mat-icon>delete</mat-icon>
             </button>
           </td>
@@ -107,44 +108,161 @@
 
         <tr mat-header-row *matHeaderRowDef="cols"></tr>
 
-        <tr mat-row
-            *matRowDef="let row; columns: cols;"
-            [attr.data-id]="row.id"
-            (click)="selectClient(row)"
-            tabindex="0"
-            [class.selected]="selectedClient?.id === row.id">
+        <tr mat-row *matRowDef="let row; columns: cols;" [attr.data-id]="row.id" (click)="selectClient(row)"
+          tabindex="0" [class.selected]="selectedClient?.id === row.id">
         </tr>
       </table>
 
-      <mat-paginator
-        [length]="totalItems"
-        [pageIndex]="pageIndex"
-        [pageSize]="pageSize"
-        [pageSizeOptions]="pageSizeOptions"
-        showFirstLastButtons
-        aria-label="Client pagination"
+      <mat-paginator [length]="totalItems" [pageIndex]="pageIndex" [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions" showFirstLastButtons aria-label="Client pagination"
         (page)="onPageChanged($event)">
       </mat-paginator>
     </div>
 
     <!-- Inline document dialog (keep one copy only) -->
-    <ng-template #documentDialog let-data>
-      <div class="dialog-container">
-        <div class="dialog-icon">
-          <mat-icon>description</mat-icon>
-        </div>
+  <ng-template #documentDialog let-data>
+  <div class="edit-dialog">
 
-        <h2 class="dialog-title">Upload Documents</h2>
-        <p class="dialog-subtitle">
-          Do you want to upload documents for <strong>{{ data.clientName }}</strong>?
-        </p>
-
-        <div class="dialog-actions">
-          <button mat-stroked-button color="warn" (click)="closeDialog()">Cancel</button>
-          <button mat-flat-button color="primary" (click)="goToDocuments()">Go to Documents</button>
-        </div>
+    <!-- Header -->
+    <div class="dialog-header center">
+      <div class="icon-wrapper">
+        <mat-icon>description</mat-icon>
       </div>
-    </ng-template>
+
+      <h2>Upload Documents</h2>
+      <p class="subtitle">
+        Upload documents for <strong>{{ data.clientName }}</strong>
+      </p>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Content -->
+    <div class="dialog-content">
+      <p>
+        You can upload and manage all documents related to this client from the documents page.
+      </p>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Actions -->
+    <div class="dialog-actions">
+      <button
+        mat-stroked-button
+        color="warn"
+        type="button"
+        (click)="closeDialog()">
+        Cancel
+      </button>
+
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="goToDocuments()">
+        Go to Documents
+      </button>
+    </div>
+
+  </div>
+</ng-template>
+
+    <!-- Edit Client Dialog -->
+  <ng-template #editClientDialog>
+  <div class="edit-dialog">
+
+    <!-- Header -->
+    <div class="dialog-header">
+      <h2>Edit Client</h2>
+      <p class="subtitle">Update client information</p>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Form -->
+    <form [formGroup]="editForm" class="dialog-form">
+
+      <div class="form-grid">
+
+        <!-- Name -->
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+
+        <!-- Email -->
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" />
+        </mat-form-field>
+
+        <!-- Phone -->
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput formControlName="phone" />
+        </mat-form-field>
+
+        <!-- Address -->
+        <mat-form-field appearance="outline">
+          <mat-label>Address</mat-label>
+          <input matInput formControlName="address" />
+        </mat-form-field>
+
+        <!-- Status -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option value="active">Active</mat-option>
+            <mat-option value="inactive">Inactive</mat-option>
+             <mat-option value="voice_mail">Voice Mail</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Assign User</mat-label>
+
+<mat-select formControlName="assignedUserId">
+  <mat-option *ngFor="let u of users" [value]="u.id">
+    {{ u.name }}
+  </mat-option>
+</mat-select>
+
+
+</mat-form-field>
+
+        
+
+      </div>
+    </form>
+
+    <mat-divider></mat-divider>
+
+    <!-- Actions -->
+    <div class="dialog-actions">
+      <button
+        mat-stroked-button
+        color="warn"
+        type="button"
+        (click)="closeEditDialog()">
+        Cancel
+      </button>
+
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="updateClient()"
+        [disabled]="editForm.invalid || loading">
+        Save Changes
+      </button>
+    </div>
+
+  </div>
+</ng-template>
+
+
 
   </mat-card>
 </div>
