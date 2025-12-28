@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://localhost:7255/api'
+  apiBaseUrl: 'https://iconfilers.club/IconFilers/api'
 };

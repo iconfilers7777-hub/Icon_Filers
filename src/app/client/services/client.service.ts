@@ -10,7 +10,7 @@ export class ClientService {
   return this.http.put(url, payload); // <-- MUST RETURN this
 }
 
-  // environment.apiBaseUrl should be: https://localhost:7255/api
+  // environment.apiBaseUrl should be: https://iconfilers.club/IconFilers/api
   private apiBase = environment.apiBaseUrl.replace(/\/+$/, '');
 
   constructor(

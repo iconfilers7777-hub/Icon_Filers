@@ -11,7 +11,7 @@ export class TeamService {
   updateTeam(team: Team) {
     throw new Error('Method not implemented.');
   }
-  private baseUrl = 'https://localhost:7255/api/ManageTeams';
+  private baseUrl = 'https://iconfilers.club/IconFilers/api/ManageTeams';
   private teams$ = new BehaviorSubject<Team[]>([]);
 
   constructor(private http: HttpClient) {}
