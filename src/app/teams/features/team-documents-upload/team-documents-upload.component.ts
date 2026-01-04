@@ -8,6 +8,8 @@ import {
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from 'src/environment/environment';
 import { AuthService } from 'src/app/auth/auth.service';
+import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 interface ClientDocument {
   id: number;
@@ -41,7 +43,7 @@ export class TeamDocumentsUploadComponent implements OnInit, OnChanges {
    displayedColumns = ['fileName', 'documentType', 'uploadedAt', 'actions'];
    search = '';
  
-   constructor(private http: HttpClient,  private authService: AuthService) {
+   constructor(private http: HttpClient,  private authService: AuthService,  private router: Router,  private route: ActivatedRoute,) {
      console.log('[DocumentsComponent] constructor, default clientId =', this.clientId);
    }
  private authOptions(removeContentType: boolean = false) {
@@ -59,11 +61,17 @@ export class TeamDocumentsUploadComponent implements OnInit, OnChanges {
  
    return { headers };
  }
-   ngOnInit(): void {
-     console.log('[DocumentsComponent] ngOnInit, clientId =', this.clientId);
-     this.loadDocumentTypes();
-     this.loadDocuments();
-   }
+ngOnInit(): void {
+  this.route.queryParamMap.subscribe(params => {
+    this.clientId = params.get('clientId') || '';
+    console.log('Client ID (query):', this.clientId);
+
+    if (this.clientId) {
+      this.loadDocumentTypes();
+      this.loadDocuments();
+    }
+  });
+}
  
    ngOnChanges(changes: SimpleChanges): void {
      if (changes['clientId']) {

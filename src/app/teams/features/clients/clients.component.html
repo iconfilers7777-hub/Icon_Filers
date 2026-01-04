@@ -1,1 +1,112 @@
-<p>team clients works!</p>
+<div class="page-header">
+  <h2>My Assigned Clients</h2>
+   <div class="header-actions">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search clients..."
+      [(ngModel)]="searchTerm"
+      (input)="applySearch()"
+    />
+
+    <span class="count-badge">
+      {{ filteredClients.length }} Clients
+    </span>
+  </div>
+  <span class="count-badge">{{ teamClients.length }} Clients</span>
+</div>
+
+<div *ngIf="loading" class="loading">Loading clients...</div>
+
+<div class="table-wrapper" *ngIf="!loading && pagedClients.length">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Client ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Status</th>
+        <th>Notes</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let client of pagedClients">
+        <td class="mono">{{ client.clientId }}</td>
+        <td>{{ client.clientName || '-' }}</td>
+        <td>{{ client.clientEmail || '-' }}</td>
+        <td>{{ client.clientPhone || '-' }}</td>
+
+        <td>
+          <span
+            class="status"
+            [class.active]="client.status === 'Active'"
+            [class.inactive]="client.status === 'Inactive'"
+          >
+            {{ client.status }}
+          </span>
+        </td>
+
+        <td>{{ client.notes || '-' }}</td>
+        <td>  <button
+            class="icon-btn"
+            title="Edit Status"
+            (click)="openStatusModal(client)"
+          >
+            ✏️
+          </button></td>
+
+        <td class="actions">
+        
+
+          <button
+            class="icon-btn"
+            title="Manage Documents"
+            (click)="openDocuments(client.clientId)"
+          >
+            📄
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div *ngIf="!loading && !teamClients.length" class="empty">
+  No clients assigned.
+</div>
+
+<!-- PAGINATION -->
+<div class="pagination" *ngIf="totalPages > 1">
+  <button (click)="prevPage()" [disabled]="currentPage === 1">◀ Prev</button>
+  <span>Page {{ currentPage }} of {{ totalPages }}</span>
+  <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next ▶</button>
+</div>
+
+<!-- STATUS MODAL -->
+<!-- STATUS MODAL -->
+<div
+  class="global-modal-backdrop"
+  *ngIf="showStatusModal"
+  (click)="closeStatusModal()"
+>
+  <div class="global-modal" (click)="$event.stopPropagation()">
+    <h3>Update Client Status</h3>
+
+    <p><strong>Client:</strong> {{ selectedClient?.clientName }}</p>
+
+    <label>Status</label>
+    <select [(ngModel)]="selectedStatus">
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+    </select>
+
+    <div class="modal-actions">
+      <button (click)="closeStatusModal()">Cancel</button>
+      <button class="primary" (click)="saveStatus()">Save</button>
+    </div>
+  </div>
+</div>
+

@@ -128,7 +128,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
   /** 🔹 Open Add User Dialog */
   openAddUserDialog(): void {
     this.dialog.open(this.addUserDialog, {
-      width: '420px',
+      width: '520px',
       height: 'fit-content',
       disableClose: true,
       panelClass: 'custom-user-dialog'
